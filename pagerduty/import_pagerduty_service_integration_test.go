@@ -27,7 +27,7 @@ func TestAccPagerDutyServiceIntegration_import(t *testing.T) {
 
 			{
 				ResourceName:      "pagerduty_service_integration.foo",
-				ImportStateIdFunc: testAccCheckPagerDutyServiceIntegrationId,
+				ImportStateIdFunc: testAccCheckPagerDutyServiceIntegrationID,
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -35,6 +35,6 @@ func TestAccPagerDutyServiceIntegration_import(t *testing.T) {
 	})
 }
 
-func testAccCheckPagerDutyServiceIntegrationId(s *terraform.State) (string, error) {
+func testAccCheckPagerDutyServiceIntegrationID(s *terraform.State) (string, error) {
 	return fmt.Sprintf("%v.%v", s.RootModule().Resources["pagerduty_service.foo"].Primary.ID, s.RootModule().Resources["pagerduty_service_integration.foo"].Primary.ID), nil
 }

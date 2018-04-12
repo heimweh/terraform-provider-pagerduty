@@ -47,11 +47,11 @@ func testSweepExtension(region string) error {
 }
 
 func TestAccPagerDutyExtension_Basic(t *testing.T) {
-	extension_name := resource.PrefixedUniqueId("tf")
-	extension_name_updated := resource.PrefixedUniqueId("tf")
+	extensionName := resource.PrefixedUniqueId("tf")
+	extensionNameUpdated := resource.PrefixedUniqueId("tf")
 	name := resource.PrefixedUniqueId("tf")
 	url := "https://example.com/recieve_a_pagerduty_webhook"
-	url_updated := "https://example.com/webhook_foo"
+	urlUpdated := "https://example.com/webhook_foo"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -59,11 +59,11 @@ func TestAccPagerDutyExtension_Basic(t *testing.T) {
 		CheckDestroy: testAccCheckPagerDutyExtensionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckPagerDutyExtensionConfig(name, extension_name, url),
+				Config: testAccCheckPagerDutyExtensionConfig(name, extensionName, url),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckPagerDutyExtensionExists("pagerduty_extension.foo"),
 					resource.TestCheckResourceAttr(
-						"pagerduty_extension.foo", "name", extension_name),
+						"pagerduty_extension.foo", "name", extensionName),
 					resource.TestCheckResourceAttr(
 						"pagerduty_extension.foo", "extension_schema", "PJFWPEP"),
 					resource.TestCheckResourceAttr(
@@ -71,15 +71,15 @@ func TestAccPagerDutyExtension_Basic(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccCheckPagerDutyExtensionConfig(name, extension_name_updated, url_updated),
+				Config: testAccCheckPagerDutyExtensionConfig(name, extensionNameUpdated, urlUpdated),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckPagerDutyExtensionExists("pagerduty_extension.foo"),
 					resource.TestCheckResourceAttr(
-						"pagerduty_extension.foo", "name", extension_name_updated),
+						"pagerduty_extension.foo", "name", extensionNameUpdated),
 					resource.TestCheckResourceAttr(
 						"pagerduty_extension.foo", "extension_schema", "PJFWPEP"),
 					resource.TestCheckResourceAttr(
-						"pagerduty_extension.foo", "endpoint_url", url_updated),
+						"pagerduty_extension.foo", "endpoint_url", urlUpdated),
 				),
 			},
 		},
@@ -127,7 +127,7 @@ func testAccCheckPagerDutyExtensionExists(n string) resource.TestCheckFunc {
 	}
 }
 
-func testAccCheckPagerDutyExtensionConfig(name string, extension_name string, url string) string {
+func testAccCheckPagerDutyExtensionConfig(name string, extensionName string, url string) string {
 	return fmt.Sprintf(`
 resource "pagerduty_user" "foo" {
   name        = "%[1]v"
@@ -176,5 +176,5 @@ resource "pagerduty_extension" "foo"{
   extension_schema = "${data.pagerduty_extension_schema.foo.id}"
   extension_objects    = ["${pagerduty_service.foo.id}"]
 }
-`, name, extension_name, url)
+`, name, extensionName, url)
 }

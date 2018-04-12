@@ -23,7 +23,7 @@ func TestAccPagerDutyUserContactMethod_import(t *testing.T) {
 			},
 			{
 				ResourceName:      "pagerduty_user_contact_method.foo",
-				ImportStateIdFunc: testAccCheckPagerDutyUserContactMethodId,
+				ImportStateIdFunc: testAccCheckPagerDutyUserContactMethodID,
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -31,6 +31,6 @@ func TestAccPagerDutyUserContactMethod_import(t *testing.T) {
 	})
 }
 
-func testAccCheckPagerDutyUserContactMethodId(s *terraform.State) (string, error) {
+func testAccCheckPagerDutyUserContactMethodID(s *terraform.State) (string, error) {
 	return fmt.Sprintf("%v:%v", s.RootModule().Resources["pagerduty_user.foo"].Primary.ID, s.RootModule().Resources["pagerduty_user_contact_method.foo"].Primary.ID), nil
 }

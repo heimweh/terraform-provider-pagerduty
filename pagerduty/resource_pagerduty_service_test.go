@@ -376,10 +376,10 @@ func TestAccPagerDutyService_SupportHoursChange(t *testing.T) {
 	email := fmt.Sprintf("%s@foo.com", username)
 	escalationPolicy := fmt.Sprintf("tf-%s", acctest.RandString(5))
 	service := fmt.Sprintf("tf-%s", acctest.RandString(5))
-	service_id := ""
-	p_service_id := &service_id
-	updated_service_id := ""
-	p_updated_service_id := &updated_service_id
+	serviceID := ""
+	pServiceID := &serviceID
+	updatedServiceID := ""
+	pUpdatedServiceID := &updatedServiceID
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -392,7 +392,7 @@ func TestAccPagerDutyService_SupportHoursChange(t *testing.T) {
 					testAccCheckPagerDutyServiceExists("pagerduty_service.foo"),
 					resource.TestCheckResourceAttr(
 						"pagerduty_service.foo", "name", service),
-					testAccCheckPagerDutyServiceSaveServiceId(p_service_id, "pagerduty_service.foo"),
+					testAccCheckPagerDutyServiceSaveServiceID(pServiceID, "pagerduty_service.foo"),
 				),
 			},
 			{
@@ -401,18 +401,18 @@ func TestAccPagerDutyService_SupportHoursChange(t *testing.T) {
 					testAccCheckPagerDutyServiceExists("pagerduty_service.foo"),
 					resource.TestCheckResourceAttr(
 						"pagerduty_service.foo", "name", service),
-					testAccCheckPagerDutyServiceSaveServiceId(p_updated_service_id, "pagerduty_service.foo"),
+					testAccCheckPagerDutyServiceSaveServiceID(pUpdatedServiceID, "pagerduty_service.foo"),
 				),
 			},
 		},
 	})
 
-	if service_id != updated_service_id {
-		t.Error(fmt.Errorf("Expected service id to be %s, but found %s", service_id, updated_service_id))
+	if serviceID != updatedServiceID {
+		t.Error(fmt.Errorf("Expected service id to be %s, but found %s", serviceID, updatedServiceID))
 	}
 }
 
-func testAccCheckPagerDutyServiceSaveServiceId(p *string, n string) resource.TestCheckFunc {
+func testAccCheckPagerDutyServiceSaveServiceID(p *string, n string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
