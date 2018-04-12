@@ -95,6 +95,20 @@ func resourcePagerDutyTeamDelete(d *schema.ResourceData, meta interface{}) error
 
 	log.Printf("[INFO] Deleting PagerDuty team %s", d.Id())
 
+	resp, _, err := client.EscalationPolicies.List(&pagerduty.ListEscalationPoliciesOptions{TeamIDs: []string{d.Id()}})
+	if err != nil {
+		return err
+	}
+
+	for _, es := range resp.EscalationPolicies {
+		log.Printf("[DEBUG] Removing Escalation Policy association: %s", es.ID)
+		if _, err := client.Teams.RemoveEscalationPolicy(d.Id(), es.ID); err != nil {
+			if ok := isNotFoundError(err); ok {
+				continue
+			}
+		}
+	}
+
 	if _, err := client.Teams.Delete(d.Id()); err != nil {
 		return err
 	}

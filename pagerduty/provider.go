@@ -53,8 +53,13 @@ func Provider() terraform.ResourceProvider {
 	}
 }
 
+func isNotFoundError(err error) bool {
+	perr, ok := err.(*pagerduty.Error)
+	return (ok && perr.ErrorResponse.StatusCode == 404)
+}
+
 func handleNotFoundError(err error, d *schema.ResourceData) error {
-	if perr, ok := err.(*pagerduty.Error); ok && perr.ErrorResponse.StatusCode == 404 {
+	if ok := isNotFoundError(err); ok {
 		log.Printf("[WARN] Removing %s because it's gone", d.Id())
 		d.SetId("")
 		return nil
