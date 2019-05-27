@@ -44,6 +44,8 @@ func resourcePagerDutyUser() *schema.Resource {
 					"read_only_user",
 					"team_responder",
 					"user",
+					"observer",
+					"restricted_access",
 				}),
 			},
 
