@@ -192,7 +192,7 @@ func resourcePagerDutyUserUpdate(d *schema.ResourceData, meta interface{}) error
 				continue
 			}
 
-			log.Printf("[INFO] Removing PagerDuty user %s from team: %s", d.Id(), t)
+			log.Printf("[INFO] Removing PagerDuty user %s from team: %s", d.Id(), *t)
 
 			if _, err := client.Teams.RemoveUser(*t, d.Id()); err != nil {
 				return err
@@ -200,7 +200,7 @@ func resourcePagerDutyUserUpdate(d *schema.ResourceData, meta interface{}) error
 		}
 
 		for _, t := range add {
-			log.Printf("[INFO] Adding PagerDuty user %s to team: %s", d.Id(), t)
+			log.Printf("[INFO] Adding PagerDuty user %s to team: %s", d.Id(), *t)
 
 			if _, err := client.Teams.AddUser(*t, d.Id()); err != nil {
 				return err
