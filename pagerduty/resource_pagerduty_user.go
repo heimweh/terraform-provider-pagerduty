@@ -187,15 +187,14 @@ func resourcePagerDutyUserUpdate(d *schema.ResourceData, meta interface{}) error
 		add := expandStringList(ns.Difference(os).List())
 
 		for _, t := range remove {
-
-			if _, _, err := client.Teams.Get(t); err != nil {
-				log.Printf("[INFO] PagerDuty team: %s not found, removing dangling team reference for user %s", t, d.Id())
+			if _, _, err := client.Teams.Get(*t); err != nil {
+				log.Printf("[INFO] PagerDuty team: %s not found, removing dangling team reference for user %s", *t, d.Id())
 				continue
 			}
 
 			log.Printf("[INFO] Removing PagerDuty user %s from team: %s", d.Id(), t)
 
-			if _, err := client.Teams.RemoveUser(t, d.Id()); err != nil {
+			if _, err := client.Teams.RemoveUser(*t, d.Id()); err != nil {
 				return err
 			}
 		}
@@ -203,7 +202,7 @@ func resourcePagerDutyUserUpdate(d *schema.ResourceData, meta interface{}) error
 		for _, t := range add {
 			log.Printf("[INFO] Adding PagerDuty user %s to team: %s", d.Id(), t)
 
-			if _, err := client.Teams.AddUser(t, d.Id()); err != nil {
+			if _, err := client.Teams.AddUser(*t, d.Id()); err != nil {
 				return err
 			}
 		}

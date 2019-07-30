@@ -31,9 +31,10 @@ func resourcePagerDutyMaintenanceWindow() *schema.Resource {
 			},
 
 			"services": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Required: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
+				Set:      schema.HashString,
 			},
 
 			"description": {
@@ -49,7 +50,7 @@ func buildMaintenanceWindowStruct(d *schema.ResourceData) *pagerduty.Maintenance
 	window := &pagerduty.MaintenanceWindow{
 		StartTime: d.Get("start_time").(string),
 		EndTime:   d.Get("end_time").(string),
-		Services:  expandServices(d.Get("services")),
+		Services:  expandServices(d.Get("services").(*schema.Set)),
 	}
 
 	if v, ok := d.GetOk("description"); ok {
@@ -125,26 +126,27 @@ func resourcePagerDutyMaintenanceWindowDelete(d *schema.ResourceData, meta inter
 	return nil
 }
 
-func expandServices(v interface{}) []*pagerduty.ServiceReference {
+func expandServices(v *schema.Set) []*pagerduty.ServiceReference {
 	var services []*pagerduty.ServiceReference
 
-	for _, srv := range v.([]interface{}) {
+	for _, srv := range expandStringSet(v) {
 		service := &pagerduty.ServiceReference{
 			Type: "service_reference",
-			ID:   srv.(string),
+			ID:   *srv,
 		}
+
 		services = append(services, service)
 	}
 
 	return services
 }
 
-func flattenServices(v []*pagerduty.ServiceReference) []interface{} {
-	var services []interface{}
+func flattenServices(v []*pagerduty.ServiceReference) *schema.Set {
+	var services []*string
 
 	for _, srv := range v {
-		services = append(services, srv.ID)
+		services = append(services, &srv.ID)
 	}
 
-	return services
+	return flattenStringSet(services)
 }
