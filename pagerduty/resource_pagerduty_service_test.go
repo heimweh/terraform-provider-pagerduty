@@ -126,6 +126,8 @@ func TestAccPagerDutyService_Basic(t *testing.T) {
 }
 
 func TestAccPagerDutyService_AlertGrouping(t *testing.T) {
+	testSkipEnterpriseTests(t)
+
 	username := fmt.Sprintf("tf-%s", acctest.RandString(5))
 	email := fmt.Sprintf("%s@foo.com", username)
 	escalationPolicy := fmt.Sprintf("tf-%s", acctest.RandString(5))

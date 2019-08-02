@@ -40,6 +40,12 @@ func testAccPreCheck(t *testing.T) {
 	}
 }
 
+func testSkipEnterpriseTests(t *testing.T) {
+	if v := os.Getenv("PAGERDUTY_ENTERPRISE_TESTS"); ok {
+		t.Skip("Environment variable PAGERDUTY_ENTERPRISE_TESTS is not set.")
+	}
+}
+
 // timeNowInLoc returns the current time in the given location.
 // If an error occurs when trying to load the location, we just return the current local time.
 func timeNowInLoc(name string) time.Time {
