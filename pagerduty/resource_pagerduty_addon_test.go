@@ -51,7 +51,7 @@ func TestAccPagerDutyAddon_Basic(t *testing.T) {
 	addon := fmt.Sprintf("tf-%s", acctest.RandString(5))
 	addonUpdated := fmt.Sprintf("tf-%s", acctest.RandString(5))
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckPagerDutyAddonDestroy,

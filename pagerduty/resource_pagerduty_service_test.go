@@ -54,7 +54,7 @@ func TestAccPagerDutyService_Basic(t *testing.T) {
 	service := fmt.Sprintf("tf-%s", acctest.RandString(5))
 	serviceUpdated := fmt.Sprintf("tf-%s", acctest.RandString(5))
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckPagerDutyServiceDestroy,
@@ -131,7 +131,7 @@ func TestAccPagerDutyService_AlertGrouping(t *testing.T) {
 	escalationPolicy := fmt.Sprintf("tf-%s", acctest.RandString(5))
 	service := fmt.Sprintf("tf-%s", acctest.RandString(5))
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckPagerDutyServiceDestroy,
@@ -199,7 +199,7 @@ func TestAccPagerDutyService_BasicWithIncidentUrgencyRules(t *testing.T) {
 	service := fmt.Sprintf("tf-%s", acctest.RandString(5))
 	serviceUpdated := fmt.Sprintf("tf-%s", acctest.RandString(5))
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckPagerDutyServiceDestroy,
@@ -397,7 +397,7 @@ func TestAccPagerDutyService_FromBasicToCustomIncidentUrgencyRules(t *testing.T)
 	service := fmt.Sprintf("tf-%s", acctest.RandString(5))
 	serviceUpdated := fmt.Sprintf("tf-%s", acctest.RandString(5))
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckPagerDutyServiceDestroy,
@@ -502,7 +502,7 @@ func TestAccPagerDutyService_SupportHoursChange(t *testing.T) {
 	updated_service_id := ""
 	p_updated_service_id := &updated_service_id
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckPagerDutyServiceDestroy,

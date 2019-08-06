@@ -8,7 +8,7 @@ import (
 
 func TestAccDataSourcePagerDutyVendor_Basic(t *testing.T) {
 	dataSourceName := "data.pagerduty_vendor.foo"
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckPagerDutyScheduleDestroy,
@@ -26,7 +26,7 @@ func TestAccDataSourcePagerDutyVendor_Basic(t *testing.T) {
 
 func TestAccDataSourcePagerDutyVendor_ExactMatch(t *testing.T) {
 	dataSourceName := "data.pagerduty_vendor.foo"
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckPagerDutyScheduleDestroy,

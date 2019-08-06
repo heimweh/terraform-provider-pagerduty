@@ -49,7 +49,7 @@ func TestAccPagerDutyMaintenanceWindow_Basic(t *testing.T) {
 	windowUpdatedStartTime := timeNowInAccLoc().Add(48 * time.Hour).Format(time.RFC3339)
 	windowUpdatedEndTime := timeNowInAccLoc().Add(72 * time.Hour).Format(time.RFC3339)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckPagerDutyAddonDestroy,

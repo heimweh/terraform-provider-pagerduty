@@ -16,7 +16,7 @@ func TestAccPagerDutyUserContactMethodEmail_Basic(t *testing.T) {
 	email := fmt.Sprintf("%s@foo.com", username)
 	emailUpdated := fmt.Sprintf("%s@foo.com", usernameUpdated)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckPagerDutyUserContactMethodDestroy,
@@ -43,7 +43,7 @@ func TestAccPagerDutyUserContactMethodPhone_Basic(t *testing.T) {
 	email := fmt.Sprintf("%s@foo.com", username)
 	emailUpdated := fmt.Sprintf("%s@foo.com", usernameUpdated)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckPagerDutyUserContactMethodDestroy,
@@ -70,7 +70,7 @@ func TestAccPagerDutyUserContactMethodSMS_Basic(t *testing.T) {
 	email := fmt.Sprintf("%s@foo.com", username)
 	emailUpdated := fmt.Sprintf("%s@foo.com", usernameUpdated)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckPagerDutyUserContactMethodDestroy,

@@ -13,7 +13,7 @@ func TestAccPagerDutyEscalationPolicy_import(t *testing.T) {
 	email := fmt.Sprintf("%s@foo.com", username)
 	escalationPolicy := fmt.Sprintf("tf-%s", acctest.RandString(5))
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckPagerDutyEscalationPolicyDestroy,

@@ -53,7 +53,7 @@ func TestAccPagerDutyExtension_Basic(t *testing.T) {
 	url := "https://example.com/recieve_a_pagerduty_webhook"
 	url_updated := "https://example.com/webhook_foo"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckPagerDutyExtensionDestroy,

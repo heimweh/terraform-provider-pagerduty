@@ -14,7 +14,7 @@ func TestAccPagerDutyMaintenanceWindow_import(t *testing.T) {
 	windowStartTime := timeNowInAccLoc().Add(24 * time.Hour).Format(time.RFC3339)
 	windowEndTime := timeNowInAccLoc().Add(48 * time.Hour).Format(time.RFC3339)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckPagerDutyTeamMembershipDestroy,

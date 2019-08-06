@@ -58,7 +58,7 @@ func TestAccPagerDutyUser_Basic(t *testing.T) {
 	email := fmt.Sprintf("%s@foo.com", username)
 	emailUpdated := fmt.Sprintf("%s@foo.com", usernameUpdated)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckPagerDutyUserDestroy,
@@ -109,7 +109,7 @@ func TestAccPagerDutyUserWithTeams_Basic(t *testing.T) {
 	team1 := fmt.Sprintf("tf-%s", acctest.RandString(5))
 	team2 := fmt.Sprintf("tf-%s", acctest.RandString(5))
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckPagerDutyUserDestroy,
