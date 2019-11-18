@@ -3,8 +3,8 @@ package pagerduty
 import (
 	"log"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/PagerDuty/go-pagerduty"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
 func resourcePagerDutyAddon() *schema.Resource {
@@ -33,7 +33,9 @@ func buildAddonStruct(d *schema.ResourceData) *pagerduty.Addon {
 	addon := &pagerduty.Addon{
 		Name: d.Get("name").(string),
 		Src:  d.Get("src").(string),
-		Type: "full_page_addon",
+		APIObject: pagerduty.APIObject{
+			Type: "full_page_addon",
+		},
 	}
 
 	return addon
@@ -46,7 +48,7 @@ func resourcePagerDutyAddonCreate(d *schema.ResourceData, meta interface{}) erro
 
 	log.Printf("[INFO] Creating PagerDuty add-on %s", addon.Name)
 
-	addon, _, err := client.Addons.Install(addon)
+	addon, err := client.InstallAddon(*addon)
 	if err != nil {
 		return err
 	}
@@ -61,7 +63,7 @@ func resourcePagerDutyAddonRead(d *schema.ResourceData, meta interface{}) error 
 
 	log.Printf("[INFO] Reading PagerDuty add-on %s", d.Id())
 
-	addon, _, err := client.Addons.Get(d.Id())
+	addon, err := client.GetAddon(d.Id())
 	if err != nil {
 		return handleNotFoundError(err, d)
 	}
@@ -79,7 +81,7 @@ func resourcePagerDutyAddonUpdate(d *schema.ResourceData, meta interface{}) erro
 
 	log.Printf("[INFO] Updating PagerDuty add-on %s", d.Id())
 
-	if _, _, err := client.Addons.Update(d.Id(), addon); err != nil {
+	if _, err := client.UpdateAddon(d.Id(), *addon); err != nil {
 		return err
 	}
 
@@ -91,7 +93,7 @@ func resourcePagerDutyAddonDelete(d *schema.ResourceData, meta interface{}) erro
 
 	log.Printf("[INFO] Deleting PagerDuty add-on %s", d.Id())
 
-	if _, err := client.Addons.Delete(d.Id()); err != nil {
+	if err := client.DeleteAddon(d.Id()); err != nil {
 		return err
 	}
 

@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/PagerDuty/go-pagerduty"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
 func resourcePagerDutyUser() *schema.Resource {
@@ -86,10 +86,13 @@ func resourcePagerDutyUser() *schema.Resource {
 	}
 }
 
-func buildUserStruct(d *schema.ResourceData) *pagerduty.User {
-	user := &pagerduty.User{
+func buildUserStruct(d *schema.ResourceData) pagerduty.User {
+	user := pagerduty.User{
 		Name:  d.Get("name").(string),
 		Email: d.Get("email").(string),
+		APIObject: pagerduty.APIObject{
+			ID: d.Id(),
+		},
 	}
 
 	if attr, ok := d.GetOk("color"); ok {
@@ -97,7 +100,7 @@ func buildUserStruct(d *schema.ResourceData) *pagerduty.User {
 	}
 
 	if attr, ok := d.GetOk("time_zone"); ok {
-		user.TimeZone = attr.(string)
+		user.Timezone = attr.(string)
 	}
 
 	if attr, ok := d.GetOk("role"); ok {
@@ -122,12 +125,12 @@ func resourcePagerDutyUserCreate(d *schema.ResourceData, meta interface{}) error
 
 	log.Printf("[INFO] Creating PagerDuty user %s", user.Name)
 
-	user, _, err := client.Users.Create(user)
+	res, err := client.CreateUser(user)
 	if err != nil {
 		return err
 	}
 
-	d.SetId(user.ID)
+	d.SetId(res.ID)
 
 	return resourcePagerDutyUserUpdate(d, meta)
 }
@@ -137,14 +140,14 @@ func resourcePagerDutyUserRead(d *schema.ResourceData, meta interface{}) error {
 
 	log.Printf("[INFO] Reading PagerDuty user %s", d.Id())
 
-	user, _, err := client.Users.Get(d.Id(), &pagerduty.GetUserOptions{})
+	user, err := client.GetUser(d.Id(), pagerduty.GetUserOptions{})
 	if err != nil {
 		return handleNotFoundError(err, d)
 	}
 
 	d.Set("name", user.Name)
 	d.Set("email", user.Email)
-	d.Set("time_zone", user.TimeZone)
+	d.Set("time_zone", user.Timezone)
 	d.Set("html_url", user.HTMLURL)
 	d.Set("color", user.Color)
 	d.Set("role", user.Role)
@@ -168,7 +171,7 @@ func resourcePagerDutyUserUpdate(d *schema.ResourceData, meta interface{}) error
 
 	log.Printf("[INFO] Updating PagerDuty user %s", d.Id())
 
-	if _, _, err := client.Users.Update(d.Id(), user); err != nil {
+	if _, err := client.UpdateUser(user); err != nil {
 		return err
 	}
 
@@ -191,14 +194,14 @@ func resourcePagerDutyUserUpdate(d *schema.ResourceData, meta interface{}) error
 
 		for _, t := range remove {
 
-			if _, _, err := client.Teams.Get(t); err != nil {
+			if _, err := client.GetTeam(t); err != nil {
 				log.Printf("[INFO] PagerDuty team: %s not found, removing dangling team reference for user %s", t, d.Id())
 				continue
 			}
 
 			log.Printf("[INFO] Removing PagerDuty user %s from team: %s", d.Id(), t)
 
-			if _, err := client.Teams.RemoveUser(t, d.Id()); err != nil {
+			if err := client.RemoveUserFromTeam(t, d.Id()); err != nil {
 				return err
 			}
 		}
@@ -206,7 +209,7 @@ func resourcePagerDutyUserUpdate(d *schema.ResourceData, meta interface{}) error
 		for _, t := range add {
 			log.Printf("[INFO] Adding PagerDuty user %s to team: %s", d.Id(), t)
 
-			if _, err := client.Teams.AddUser(t, d.Id()); err != nil {
+			if err := client.AddUserToTeam(t, d.Id()); err != nil {
 				return err
 			}
 		}
@@ -220,11 +223,22 @@ func resourcePagerDutyUserDelete(d *schema.ResourceData, meta interface{}) error
 
 	log.Printf("[INFO] Deleting PagerDuty user %s", d.Id())
 
-	if _, err := client.Users.Delete(d.Id()); err != nil {
+	if err := client.DeleteUser(d.Id()); err != nil {
 		return err
 	}
 
 	d.SetId("")
 
 	return nil
+}
+
+func flattenTeams(teams []pagerduty.Team) []string {
+	var res []string
+
+	for _, team := range teams {
+		res = append(res, team.ID)
+	}
+
+	return res
+
 }

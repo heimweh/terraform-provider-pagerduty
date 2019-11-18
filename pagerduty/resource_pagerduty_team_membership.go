@@ -6,9 +6,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/PagerDuty/go-pagerduty"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/PagerDuty/go-pagerduty"
 )
 
 func resourcePagerDutyTeamMembership() *schema.Resource {
@@ -42,7 +42,7 @@ func resourcePagerDutyTeamMembershipCreate(d *schema.ResourceData, meta interfac
 	log.Printf("[DEBUG] Adding user: %s to team: %s", userID, teamID)
 
 	retryErr := resource.Retry(2*time.Minute, func() *resource.RetryError {
-		if _, err := client.Teams.AddUser(teamID, userID); err != nil {
+		if err := client.AddUserToTeam(teamID, userID); err != nil {
 			if isErrCode(err, 500) {
 				return resource.RetryableError(err)
 			}
@@ -68,7 +68,7 @@ func resourcePagerDutyTeamMembershipRead(d *schema.ResourceData, meta interface{
 
 	log.Printf("[DEBUG] Reading user: %s from team: %s", userID, teamID)
 
-	user, _, err := client.Users.Get(userID, &pagerduty.GetUserOptions{})
+	user, err := client.GetUser(userID, pagerduty.GetUserOptions{})
 	if err != nil {
 		return handleNotFoundError(err, d)
 	}
@@ -91,7 +91,7 @@ func resourcePagerDutyTeamMembershipDelete(d *schema.ResourceData, meta interfac
 
 	log.Printf("[DEBUG] Removing user: %s from team: %s", userID, teamID)
 
-	if _, err := client.Teams.RemoveUser(teamID, userID); err != nil {
+	if err := client.RemoveUserFromTeam(teamID, userID); err != nil {
 		return err
 	}
 

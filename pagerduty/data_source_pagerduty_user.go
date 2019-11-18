@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/PagerDuty/go-pagerduty"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
 func dataSourcePagerDutyUser() *schema.Resource {
@@ -32,11 +32,11 @@ func dataSourcePagerDutyUserRead(d *schema.ResourceData, meta interface{}) error
 
 	searchEmail := d.Get("email").(string)
 
-	o := &pagerduty.ListUsersOptions{
+	o := pagerduty.ListUsersOptions{
 		Query: searchEmail,
 	}
 
-	resp, _, err := client.Users.List(o)
+	resp, err := client.ListUsers(o)
 	if err != nil {
 		return err
 	}
@@ -45,7 +45,7 @@ func dataSourcePagerDutyUserRead(d *schema.ResourceData, meta interface{}) error
 
 	for _, user := range resp.Users {
 		if user.Email == searchEmail {
-			found = user
+			found = &user
 			break
 		}
 	}

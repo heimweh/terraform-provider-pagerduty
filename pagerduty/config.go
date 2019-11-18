@@ -5,8 +5,8 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/logging"
 	"github.com/PagerDuty/go-pagerduty"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/logging"
 )
 
 // Config defines the configuration options for the PagerDuty client
@@ -39,22 +39,11 @@ func (c *Config) Client() (*pagerduty.Client, error) {
 	httpClient = http.DefaultClient
 	httpClient.Transport = logging.NewTransport("PagerDuty", http.DefaultTransport)
 
-	config := &pagerduty.Config{
-		Debug:      logging.IsDebugOrHigher(),
-		HTTPClient: httpClient,
-		Token:      c.Token,
-		UserAgent:  c.UserAgent,
-	}
-
-	client, err := pagerduty.NewClient(config)
-	if err != nil {
-		return nil, err
-	}
-
+	client := pagerduty.NewClient(c.Token)
 	if !c.SkipCredsValidation {
 		// Validate the credentials by calling the abilities endpoint,
 		// if we get a 401 response back we return an error to the user
-		if err := client.ValidateAuth(); err != nil {
+		if _, err := client.ListAbilities(); err != nil {
 			return nil, fmt.Errorf(fmt.Sprintf("%s\n%s", err, invalidCreds))
 		}
 	}

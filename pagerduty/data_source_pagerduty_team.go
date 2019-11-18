@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/PagerDuty/go-pagerduty"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
 func dataSourcePagerDutyTeam() *schema.Resource {
@@ -33,11 +33,11 @@ func dataSourcePagerDutyTeamRead(d *schema.ResourceData, meta interface{}) error
 
 	searchTeam := d.Get("name").(string)
 
-	o := &pagerduty.ListTeamsOptions{
+	o := pagerduty.ListTeamOptions{
 		Query: searchTeam,
 	}
 
-	resp, _, err := client.Teams.List(o)
+	resp, err := client.ListTeams(o)
 	if err != nil {
 		return err
 	}
@@ -46,7 +46,7 @@ func dataSourcePagerDutyTeamRead(d *schema.ResourceData, meta interface{}) error
 
 	for _, team := range resp.Teams {
 		if team.Name == searchTeam {
-			found = team
+			found = &team
 			break
 		}
 	}
