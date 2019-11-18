@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/logging"
-	"github.com/heimweh/go-pagerduty/pagerduty"
+	"github.com/PagerDuty/go-pagerduty"
 )
 
 // Config defines the configuration options for the PagerDuty client
