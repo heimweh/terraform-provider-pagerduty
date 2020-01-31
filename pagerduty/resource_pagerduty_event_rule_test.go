@@ -69,8 +69,8 @@ func TestAccPagerDutyEventRule_Basic(t *testing.T) {
 			{
 				Config: testAccCheckPagerDutyEventRuleConfigUpdated(eventRuleUpdated),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckPagerDutyEventRuleExists("pagerduty_event_rule.foo-update"),
-					resource.TestCheckNoResourceAttr("pagerduty_event_rule.foo-update", "advanced_condition_json"),
+					testAccCheckPagerDutyEventRuleExists("pagerduty_event_rule.foo"),
+					resource.TestCheckNoResourceAttr("pagerduty_event_rule.foo", "advanced_condition_json"),
 				),
 			},
 		},
@@ -156,7 +156,7 @@ resource "pagerduty_event_rule" "foo" {
 
 func testAccCheckPagerDutyEventRuleConfigUpdated(eventRule string) string {
 	return fmt.Sprintf(`
-resource "pagerduty_event_rule" "foo-update" {
+resource "pagerduty_event_rule" "foo" {
 	action_json = jsonencode([["route","P5DTL0K"],["severity","warning"],["annotate","%s"],["priority","PL451DT"]])
 	condition_json = jsonencode(["and",["contains",["path","payload","source"],"website"]])
 }
