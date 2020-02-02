@@ -7,10 +7,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/PagerDuty/go-pagerduty"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/PagerDuty/go-pagerduty"
 )
 
 func init() {
@@ -31,7 +31,7 @@ func testSweepSchedule(region string) error {
 		return err
 	}
 
-	resp, _, err := client.Schedules.List(&pagerduty.ListSchedulesOptions{})
+	resp, err := client.ListSchedules(pagerduty.ListSchedulesOptions{})
 	if err != nil {
 		return err
 	}
@@ -39,7 +39,7 @@ func testSweepSchedule(region string) error {
 	for _, schedule := range resp.Schedules {
 		if strings.HasPrefix(schedule.Name, "test") || strings.HasPrefix(schedule.Name, "tf-") {
 			log.Printf("Destroying schedule %s (%s)", schedule.Name, schedule.ID)
-			if _, err := client.Schedules.Delete(schedule.ID); err != nil {
+			if err := client.DeleteSchedule(schedule.ID); err != nil {
 				return err
 			}
 		}
@@ -291,7 +291,7 @@ func testAccCheckPagerDutyScheduleDestroy(s *terraform.State) error {
 			continue
 		}
 
-		if _, _, err := client.Schedules.Get(r.Primary.ID, &pagerduty.GetScheduleOptions{}); err == nil {
+		if _, err := client.GetSchedule(r.Primary.ID, pagerduty.GetScheduleOptions{}); err == nil {
 			return fmt.Errorf("Schedule still exists")
 		}
 
@@ -311,7 +311,7 @@ func testAccCheckPagerDutyScheduleExists(n string) resource.TestCheckFunc {
 
 		client := testAccProvider.Meta().(*pagerduty.Client)
 
-		found, _, err := client.Schedules.Get(rs.Primary.ID, &pagerduty.GetScheduleOptions{})
+		found, err := client.GetSchedule(rs.Primary.ID, pagerduty.GetScheduleOptions{})
 		if err != nil {
 			return err
 		}

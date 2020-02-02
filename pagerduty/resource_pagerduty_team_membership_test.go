@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/PagerDuty/go-pagerduty"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/PagerDuty/go-pagerduty"
 )
 
 func TestAccPagerDutyTeamMembership_Basic(t *testing.T) {
@@ -36,7 +36,7 @@ func testAccCheckPagerDutyTeamMembershipDestroy(s *terraform.State) error {
 			continue
 		}
 
-		user, _, err := client.Users.Get(r.Primary.Attributes["user_id"], &pagerduty.GetUserOptions{})
+		user, err := client.GetUser(r.Primary.Attributes["user_id"], pagerduty.GetUserOptions{})
 		if err == nil {
 			if isTeamMember(user, r.Primary.Attributes["team_id"]) {
 				return fmt.Errorf("%s is still a member of: %s", user.ID, r.Primary.Attributes["team_id"])
@@ -63,7 +63,7 @@ func testAccCheckPagerDutyTeamMembershipExists(n string) resource.TestCheckFunc 
 		userID := rs.Primary.Attributes["user_id"]
 		teamID := rs.Primary.Attributes["team_id"]
 
-		user, _, err := client.Users.Get(userID, &pagerduty.GetUserOptions{})
+		user, err := client.GetUser(userID, pagerduty.GetUserOptions{})
 		if err != nil {
 			return err
 		}

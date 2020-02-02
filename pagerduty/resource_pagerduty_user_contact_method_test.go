@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/PagerDuty/go-pagerduty"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/PagerDuty/go-pagerduty"
 )
 
 func TestAccPagerDutyUserContactMethodEmail_Basic(t *testing.T) {
@@ -98,7 +98,7 @@ func testAccCheckPagerDutyUserContactMethodDestroy(s *terraform.State) error {
 			continue
 		}
 
-		if _, _, err := client.Users.GetContactMethod(r.Primary.Attributes["user_id"], r.Primary.ID); err == nil {
+		if _, err := client.GetUserContactMethod(r.Primary.Attributes["user_id"], r.Primary.ID); err == nil {
 			return fmt.Errorf("User contact method still exists")
 		}
 
@@ -119,7 +119,7 @@ func testAccCheckPagerDutyUserContactMethodExists(n string) resource.TestCheckFu
 
 		client := testAccProvider.Meta().(*pagerduty.Client)
 
-		found, _, err := client.Users.GetContactMethod(rs.Primary.Attributes["user_id"], rs.Primary.ID)
+		found, err := client.GetUserContactMethod(rs.Primary.Attributes["user_id"], rs.Primary.ID)
 		if err != nil {
 			return err
 		}

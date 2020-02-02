@@ -6,9 +6,9 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/PagerDuty/go-pagerduty"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/PagerDuty/go-pagerduty"
 )
 
 func init() {
@@ -29,7 +29,7 @@ func testSweepExtension(region string) error {
 		return err
 	}
 
-	resp, _, err := client.Extensions.List(&pagerduty.ListExtensionsOptions{})
+	resp, err := client.ListExtensions(pagerduty.ListExtensionOptions{})
 	if err != nil {
 		return err
 	}
@@ -37,7 +37,7 @@ func testSweepExtension(region string) error {
 	for _, extension := range resp.Extensions {
 		if strings.HasPrefix(extension.Name, "test") || strings.HasPrefix(extension.Name, "tf-") {
 			log.Printf("Destroying extension %s (%s)", extension.Name, extension.ID)
-			if _, err := client.Extensions.Delete(extension.ID); err != nil {
+			if err := client.DeleteExtension(extension.ID); err != nil {
 				return err
 			}
 		}
@@ -99,7 +99,7 @@ func testAccCheckPagerDutyExtensionDestroy(s *terraform.State) error {
 			continue
 		}
 
-		if _, _, err := client.Extensions.Get(r.Primary.ID); err == nil {
+		if _, err := client.GetExtension(r.Primary.ID); err == nil {
 			return fmt.Errorf("Extension still exists")
 		}
 
@@ -120,7 +120,7 @@ func testAccCheckPagerDutyExtensionExists(n string) resource.TestCheckFunc {
 
 		client := testAccProvider.Meta().(*pagerduty.Client)
 
-		found, _, err := client.Extensions.Get(rs.Primary.ID)
+		found, err := client.GetExtension(rs.Primary.ID)
 		if err != nil {
 			return err
 		}

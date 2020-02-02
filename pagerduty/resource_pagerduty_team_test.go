@@ -6,10 +6,10 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/PagerDuty/go-pagerduty"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/PagerDuty/go-pagerduty"
 )
 
 func init() {
@@ -35,7 +35,7 @@ func testSweepTeam(region string) error {
 		return err
 	}
 
-	resp, _, err := client.Teams.List(&pagerduty.ListTeamsOptions{})
+	resp, err := client.ListTeams(pagerduty.ListTeamOptions{})
 	if err != nil {
 		return err
 	}
@@ -43,7 +43,7 @@ func testSweepTeam(region string) error {
 	for _, team := range resp.Teams {
 		if strings.HasPrefix(team.Name, "test") || strings.HasPrefix(team.Name, "tf-") {
 			log.Printf("Destroying team %s (%s)", team.Name, team.ID)
-			if _, err := client.Teams.Delete(team.ID); err != nil {
+			if err := client.DeleteTeam(team.ID); err != nil {
 				return err
 			}
 		}
@@ -94,7 +94,7 @@ func testAccCheckPagerDutyTeamDestroy(s *terraform.State) error {
 			continue
 		}
 
-		if _, _, err := client.Teams.Get(r.Primary.ID); err == nil {
+		if _, err := client.GetTeam(r.Primary.ID); err == nil {
 			return fmt.Errorf("Team still exists")
 		}
 
@@ -106,7 +106,7 @@ func testAccCheckPagerDutyTeamExists(n string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := testAccProvider.Meta().(*pagerduty.Client)
 		for _, r := range s.RootModule().Resources {
-			if _, _, err := client.Teams.Get(r.Primary.ID); err != nil {
+			if _, err := client.GetTeam(r.Primary.ID); err != nil {
 				return fmt.Errorf("Received an error retrieving team %s ID: %s", err, r.Primary.ID)
 			}
 		}

@@ -33,8 +33,8 @@ func Provider() terraform.ResourceProvider {
 			"pagerduty_user":              dataSourcePagerDutyUser(),
 			"pagerduty_team":              dataSourcePagerDutyTeam(),
 			"pagerduty_vendor":            dataSourcePagerDutyVendor(),
-			// "pagerduty_extension_schema":  dataSourcePagerDutyExtensionSchema(),
-			"pagerduty_service": dataSourcePagerDutyService(),
+			"pagerduty_extension_schema":  dataSourcePagerDutyExtensionSchema(),
+			"pagerduty_service":           dataSourcePagerDutyService(),
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
@@ -48,7 +48,7 @@ func Provider() terraform.ResourceProvider {
 			"pagerduty_team_membership":     resourcePagerDutyTeamMembership(),
 			"pagerduty_user":                resourcePagerDutyUser(),
 			// "pagerduty_user_contact_method": resourcePagerDutyUserContactMethod(),
-			// "pagerduty_extension":           resourcePagerDutyExtension(),
+			"pagerduty_extension": resourcePagerDutyExtension(),
 			// "pagerduty_event_rule":          resourcePagerDutyEventRule(),
 		},
 	}
@@ -67,7 +67,7 @@ func Provider() terraform.ResourceProvider {
 }
 
 func isErrCode(err error, code int) bool {
-	if strings.Contains(fmt.Sprintf("response code: %d", err.Error()), fmt.Sprintf("%d", code)) {
+	if strings.Contains(err.Error(), fmt.Sprintf("%d", code)) {
 		return true
 	}
 

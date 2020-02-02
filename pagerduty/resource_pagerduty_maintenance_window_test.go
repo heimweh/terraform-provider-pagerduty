@@ -7,10 +7,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/PagerDuty/go-pagerduty"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/PagerDuty/go-pagerduty"
 )
 
 func testSweepMaintenanceWindow(region string) error {
@@ -24,7 +24,7 @@ func testSweepMaintenanceWindow(region string) error {
 		return err
 	}
 
-	resp, _, err := client.MaintenanceWindows.List(&pagerduty.ListMaintenanceWindowsOptions{})
+	resp, err := client.ListMaintenanceWindows(pagerduty.ListMaintenanceWindowsOptions{})
 	if err != nil {
 		return err
 	}
@@ -32,7 +32,7 @@ func testSweepMaintenanceWindow(region string) error {
 	for _, window := range resp.MaintenanceWindows {
 		if strings.HasPrefix(window.Description, "test") || strings.HasPrefix(window.Description, "tf-") {
 			log.Printf("Destroying maintenance window %s (%s)", window.Description, window.ID)
-			if _, err := client.MaintenanceWindows.Delete(window.ID); err != nil {
+			if err := client.DeleteMaintenanceWindow(window.ID); err != nil {
 				return err
 			}
 		}
@@ -77,7 +77,7 @@ func testAccCheckPagerDutyMaintenanceWindowDestroy(s *terraform.State) error {
 			continue
 		}
 
-		if _, _, err := client.MaintenanceWindows.Get(r.Primary.ID); err == nil {
+		if _, err := client.GetMaintenanceWindow(r.Primary.ID, pagerduty.GetMaintenanceWindowOptions{}); err == nil {
 			return fmt.Errorf("maintenance window still exists")
 		}
 
@@ -98,7 +98,7 @@ func testAccCheckPagerDutyMaintenanceWindowExists(n string) resource.TestCheckFu
 
 		client := testAccProvider.Meta().(*pagerduty.Client)
 
-		found, _, err := client.MaintenanceWindows.Get(rs.Primary.ID)
+		found, err := client.GetMaintenanceWindow(rs.Primary.ID, pagerduty.GetMaintenanceWindowOptions{})
 		if err != nil {
 			return err
 		}

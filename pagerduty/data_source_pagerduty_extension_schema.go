@@ -1,59 +1,59 @@
 package pagerduty
 
-// import (
-// 	"fmt"
-// 	"log"
-// 	"strings"
+import (
+	"fmt"
+	"log"
+	"strings"
 
-// 	"github.com/PagerDuty/go-pagerduty"
-// 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-// )
+	"github.com/PagerDuty/go-pagerduty"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+)
 
-// func dataSourcePagerDutyExtensionSchema() *schema.Resource {
-// 	return &schema.Resource{
-// 		Read: dataSourcePagerDutyExtensionSchemaRead,
+func dataSourcePagerDutyExtensionSchema() *schema.Resource {
+	return &schema.Resource{
+		Read: dataSourcePagerDutyExtensionSchemaRead,
 
-// 		Schema: map[string]*schema.Schema{
-// 			"name": {
-// 				Type:     schema.TypeString,
-// 				Required: true,
-// 			},
-// 			"type": {
-// 				Type:     schema.TypeString,
-// 				Computed: true,
-// 			},
-// 		},
-// 	}
-// }
+		Schema: map[string]*schema.Schema{
+			"name": {
+				Type:     schema.TypeString,
+				Required: true,
+			},
+			"type": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+		},
+	}
+}
 
-// func dataSourcePagerDutyExtensionSchemaRead(d *schema.ResourceData, meta interface{}) error {
-// 	client := meta.(*pagerduty.Client)
+func dataSourcePagerDutyExtensionSchemaRead(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*pagerduty.Client)
 
-// 	log.Printf("[INFO] Reading PagerDuty Extension Schema")
+	log.Printf("[INFO] Reading PagerDuty Extension Schema")
 
-// 	searchName := d.Get("name").(string)
+	searchName := d.Get("name").(string)
 
-// 	resp, _, err := client.ExtensionSchemas.List(&pagerduty.ListExtensionSchemasOptions{Query: searchName})
-// 	if err != nil {
-// 		return err
-// 	}
+	resp, err := client.ListExtensionSchemas(pagerduty.ListExtensionSchemaOptions{Query: searchName})
+	if err != nil {
+		return err
+	}
 
-// 	var found *pagerduty.ExtensionSchema
+	var found *pagerduty.ExtensionSchema
 
-// 	for _, schema := range resp.ExtensionSchemas {
-// 		if strings.EqualFold(schema.Label, searchName) {
-// 			found = schema
-// 			break
-// 		}
-// 	}
+	for _, schema := range resp.ExtensionSchemas {
+		if strings.EqualFold(schema.Label, searchName) {
+			found = &schema
+			break
+		}
+	}
 
-// 	if found == nil {
-// 		return fmt.Errorf("Unable to locate any extension schema with the name: %s", searchName)
-// 	}
+	if found == nil {
+		return fmt.Errorf("Unable to locate any extension schema with the name: %s", searchName)
+	}
 
-// 	d.SetId(found.ID)
-// 	d.Set("name", found.Label)
-// 	d.Set("type", found.Type)
+	d.SetId(found.ID)
+	d.Set("name", found.Label)
+	d.Set("type", found.Type)
 
-// 	return nil
-// }
+	return nil
+}
