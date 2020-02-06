@@ -68,7 +68,7 @@ func buildExtensionStruct(d *schema.ResourceData) *pagerduty.Extension {
 			Type: "extension",
 		},
 		EndpointURL: d.Get("endpoint_url").(string),
-		ExtensionSchema: pagerduty.APIReference{
+		ExtensionSchema: pagerduty.APIObject{
 			Type: "extension_schema_reference",
 			ID:   d.Get("extension_schema").(string),
 		},
@@ -169,11 +169,11 @@ func resourcePagerDutyExtensionImport(d *schema.ResourceData, meta interface{}) 
 	return []*schema.ResourceData{d}, err
 }
 
-func expandServiceObjects(v interface{}) []pagerduty.APIReference {
-	var services []pagerduty.APIReference
+func expandServiceObjects(v interface{}) []pagerduty.APIObject {
+	var services []pagerduty.APIObject
 
 	for _, srv := range v.(*schema.Set).List() {
-		service := pagerduty.APIReference{
+		service := pagerduty.APIObject{
 			Type: "service_reference",
 			ID:   srv.(string),
 		}
@@ -183,7 +183,7 @@ func expandServiceObjects(v interface{}) []pagerduty.APIReference {
 	return services
 }
 
-func flattenExtensionObjects(serviceList []pagerduty.APIReference) interface{} {
+func flattenExtensionObjects(serviceList []pagerduty.APIObject) interface{} {
 	var services []interface{}
 	for _, s := range serviceList {
 		// only flatten service_reference types, because that's all we send at this
