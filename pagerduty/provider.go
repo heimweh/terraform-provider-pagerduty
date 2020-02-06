@@ -67,7 +67,7 @@ func Provider() terraform.ResourceProvider {
 }
 
 func isErrCode(err error, code int) bool {
-	if strings.Contains(err.Error(), fmt.Sprintf("%d", code)) {
+	if strings.Contains(err.Error(), fmt.Sprintf("HTTP response code: %v", code)) {
 		return true
 	}
 
