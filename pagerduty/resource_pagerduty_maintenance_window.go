@@ -4,7 +4,7 @@ import (
 	"log"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/heimweh/go-pagerduty/pagerduty"
+	"github.com/PagerDuty/go-pagerduty"
 )
 
 func resourcePagerDutyMaintenanceWindow() *schema.Resource {
