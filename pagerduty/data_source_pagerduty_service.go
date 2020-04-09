@@ -2,9 +2,10 @@ package pagerduty
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/PagerDuty/go-pagerduty"
 	"log"
+
+	"github.com/PagerDuty/go-pagerduty"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
 func dataSourcePagerDutyService() *schema.Resource {
@@ -27,20 +28,20 @@ func dataSourcePagerDutyServiceRead(d *schema.ResourceData, meta interface{}) er
 
 	searchName := d.Get("name").(string)
 
-	o := &pagerduty.ListServicesOptions{
+	opts := pagerduty.ListServiceOptions{
 		Query: searchName,
 	}
 
-	resp, _, err := client.Services.List(o)
+	res, err := client.ListServices(opts)
 	if err != nil {
 		return err
 	}
 
 	var found *pagerduty.Service
 
-	for _, service := range resp.Services {
+	for _, service := range res.Services {
 		if service.Name == searchName {
-			found = service
+			found = &service
 			break
 		}
 	}

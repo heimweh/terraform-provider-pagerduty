@@ -4,9 +4,9 @@ import (
 	"log"
 	"time"
 
+	"github.com/PagerDuty/go-pagerduty"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/PagerDuty/go-pagerduty"
 )
 
 func resourcePagerDutySchedule() *schema.Resource {
@@ -119,13 +119,13 @@ func resourcePagerDutySchedule() *schema.Resource {
 	}
 }
 
-func buildScheduleStruct(d *schema.ResourceData) (*pagerduty.Schedule, error) {
+func buildScheduleStruct(d *schema.ResourceData) (pagerduty.Schedule, error) {
 	layers, err := expandScheduleLayers(d.Get("layer"))
 	if err != nil {
-		return nil, err
+		return pagerduty.Schedule{}, err
 	}
 
-	schedule := &pagerduty.Schedule{
+	schedule := pagerduty.Schedule{
 		Name:           d.Get("name").(string),
 		TimeZone:       d.Get("time_zone").(string),
 		ScheduleLayers: layers,
@@ -141,20 +141,21 @@ func buildScheduleStruct(d *schema.ResourceData) (*pagerduty.Schedule, error) {
 func resourcePagerDutyScheduleCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*pagerduty.Client)
 
-	schedule, err := buildScheduleStruct(d)
+	req, err := buildScheduleStruct(d)
 	if err != nil {
 		return err
 	}
 
-	o := &pagerduty.CreateScheduleOptions{}
+	// XXX(heimweh): This does not exist.
+	// opts := pagerduty.CreateScheduleOptions{}
 
-	if v, ok := d.GetOk("overflow"); ok {
-		o.Overflow = v.(bool)
-	}
+	// if v, ok := d.GetOk("overflow"); ok {
+	// 	o.Overflow = v.(bool)
+	// }
 
-	log.Printf("[INFO] Creating PagerDuty schedule: %s", schedule.Name)
+	log.Printf("[INFO] Creating PagerDuty schedule: %s", req.Name)
 
-	schedule, _, err = client.Schedules.Create(schedule, o)
+	schedule, err := client.CreateSchedule(req)
 	if err != nil {
 		return err
 	}
@@ -170,7 +171,7 @@ func resourcePagerDutyScheduleRead(d *schema.ResourceData, meta interface{}) err
 	log.Printf("[INFO] Reading PagerDuty schedule: %s", d.Id())
 
 	retryErr := resource.Retry(30*time.Second, func() *resource.RetryError {
-		if schedule, _, err := client.Schedules.Get(d.Id(), &pagerduty.GetScheduleOptions{}); err != nil {
+		if schedule, err := client.GetSchedule(d.Id(), pagerduty.GetScheduleOptions{}); err != nil {
 			if isErrCode(err, 500) || isErrCode(err, 503) || isErrCode(err, 429) {
 				return resource.RetryableError(err)
 			}
@@ -216,15 +217,16 @@ func resourcePagerDutyScheduleUpdate(d *schema.ResourceData, meta interface{}) e
 		return err
 	}
 
-	o := &pagerduty.UpdateScheduleOptions{}
+	/// XXX(heimweh): Missing.
+	// o := &pagerduty.UpdateScheduleOptions{}
 
-	if v, ok := d.GetOk("overflow"); ok {
-		o.Overflow = v.(bool)
-	}
+	// if v, ok := d.GetOk("overflow"); ok {
+	// 	o.Overflow = v.(bool)
+	// }
 
 	log.Printf("[INFO] Updating PagerDuty schedule: %s", d.Id())
 
-	if _, _, err := client.Schedules.Update(d.Id(), schedule, o); err != nil {
+	if _, err := client.UpdateSchedule(d.Id(), schedule); err != nil {
 		return err
 	}
 
@@ -236,7 +238,7 @@ func resourcePagerDutyScheduleDelete(d *schema.ResourceData, meta interface{}) e
 
 	log.Printf("[INFO] Deleting PagerDuty schedule: %s", d.Id())
 
-	if _, err := client.Schedules.Delete(d.Id()); err != nil {
+	if err := client.DeleteSchedule(d.Id()); err != nil {
 		return err
 	}
 
@@ -245,8 +247,8 @@ func resourcePagerDutyScheduleDelete(d *schema.ResourceData, meta interface{}) e
 	return nil
 }
 
-func expandScheduleLayers(v interface{}) ([]*pagerduty.ScheduleLayer, error) {
-	var scheduleLayers []*pagerduty.ScheduleLayer
+func expandScheduleLayers(v interface{}) ([]pagerduty.ScheduleLayer, error) {
+	var scheduleLayers []pagerduty.ScheduleLayer
 
 	for _, sl := range v.([]interface{}) {
 		rsl := sl.(map[string]interface{})
@@ -262,18 +264,20 @@ func expandScheduleLayers(v interface{}) ([]*pagerduty.ScheduleLayer, error) {
 			return nil, err
 		}
 
-		scheduleLayer := &pagerduty.ScheduleLayer{
-			ID:                        rsl["id"].(string),
+		scheduleLayer := pagerduty.ScheduleLayer{
 			Name:                      rsl["name"].(string),
 			Start:                     rsl["start"].(string),
 			End:                       rsl["end"].(string),
 			RotationVirtualStart:      rvs,
-			RotationTurnLengthSeconds: rsl["rotation_turn_length_seconds"].(int),
+			RotationTurnLengthSeconds: uint(rsl["rotation_turn_length_seconds"].(int)),
+			APIObject: pagerduty.APIObject{
+				ID: rsl["id"].(string),
+			},
 		}
 
 		for _, slu := range rsl["users"].([]interface{}) {
-			user := &pagerduty.UserReferenceWrapper{
-				User: &pagerduty.UserReference{
+			user := pagerduty.UserReference{
+				User: pagerduty.APIObject{
 					ID:   slu.(string),
 					Type: "user",
 				},
@@ -284,11 +288,11 @@ func expandScheduleLayers(v interface{}) ([]*pagerduty.ScheduleLayer, error) {
 		for _, slr := range rsl["restriction"].([]interface{}) {
 			rslr := slr.(map[string]interface{})
 
-			restriction := &pagerduty.Restriction{
+			restriction := pagerduty.Restriction{
 				Type:            rslr["type"].(string),
 				StartTimeOfDay:  rslr["start_time_of_day"].(string),
-				StartDayOfWeek:  rslr["start_day_of_week"].(int),
-				DurationSeconds: rslr["duration_seconds"].(int),
+				StartDayOfWeek:  uint(rslr["start_day_of_week"].(int)),
+				DurationSeconds: uint(rslr["duration_seconds"].(int)),
 			}
 
 			scheduleLayer.Restrictions = append(scheduleLayer.Restrictions, restriction)
@@ -300,7 +304,7 @@ func expandScheduleLayers(v interface{}) ([]*pagerduty.ScheduleLayer, error) {
 	return scheduleLayers, nil
 }
 
-func flattenScheduleLayers(v []*pagerduty.ScheduleLayer) []map[string]interface{} {
+func flattenScheduleLayers(v []pagerduty.ScheduleLayer) []map[string]interface{} {
 	var scheduleLayers []map[string]interface{}
 
 	for _, sl := range v {

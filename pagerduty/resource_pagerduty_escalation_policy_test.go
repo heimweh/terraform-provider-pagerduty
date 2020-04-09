@@ -6,10 +6,10 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/PagerDuty/go-pagerduty"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/PagerDuty/go-pagerduty"
 )
 
 func init() {
@@ -33,15 +33,15 @@ func testSweepEscalationPolicy(region string) error {
 		return err
 	}
 
-	resp, _, err := client.EscalationPolicies.List(&pagerduty.ListEscalationPoliciesOptions{})
+	res, err := client.ListEscalationPolicies(pagerduty.ListEscalationPoliciesOptions{})
 	if err != nil {
 		return err
 	}
 
-	for _, escalation := range resp.EscalationPolicies {
+	for _, escalation := range res.EscalationPolicies {
 		if strings.HasPrefix(escalation.Name, "test") || strings.HasPrefix(escalation.Name, "tf-") {
 			log.Printf("Destroying escalation policy %s (%s)", escalation.Name, escalation.ID)
-			if _, err := client.EscalationPolicies.Delete(escalation.ID); err != nil {
+			if err := client.DeleteEscalationPolicy(escalation.ID); err != nil {
 				return err
 			}
 		}
@@ -161,7 +161,7 @@ func testAccCheckPagerDutyEscalationPolicyDestroy(s *terraform.State) error {
 			continue
 		}
 
-		if _, _, err := client.EscalationPolicies.Get(r.Primary.ID, &pagerduty.GetEscalationPolicyOptions{}); err == nil {
+		if _, err := client.GetEscalationPolicy(r.Primary.ID, &pagerduty.GetEscalationPolicyOptions{}); err == nil {
 			return fmt.Errorf("Escalation Policy still exists")
 		}
 
@@ -181,7 +181,7 @@ func testAccCheckPagerDutyEscalationPolicyExists(n string) resource.TestCheckFun
 
 		client := testAccProvider.Meta().(*pagerduty.Client)
 
-		found, _, err := client.EscalationPolicies.Get(rs.Primary.ID, &pagerduty.GetEscalationPolicyOptions{})
+		found, err := client.GetEscalationPolicy(rs.Primary.ID, &pagerduty.GetEscalationPolicyOptions{})
 		if err != nil {
 			return err
 		}

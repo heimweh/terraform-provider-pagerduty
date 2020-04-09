@@ -79,7 +79,7 @@ func testAccPreCheckPagerDutyAbility(t *testing.T, ability string) {
 		t.Fatal(err)
 	}
 
-	if _, err := client.Abilities.Test(ability); err != nil {
+	if err := client.TestAbility(ability); err != nil {
 		t.Skipf("Missing ability: %s. Skipping test", ability)
 	}
 }

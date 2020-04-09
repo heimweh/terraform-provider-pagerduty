@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/PagerDuty/go-pagerduty"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
 func dataSourcePagerDutyEscalationPolicy() *schema.Resource {
@@ -28,20 +28,20 @@ func dataSourcePagerDutyEscalationPolicyRead(d *schema.ResourceData, meta interf
 
 	searchName := d.Get("name").(string)
 
-	o := &pagerduty.ListEscalationPoliciesOptions{
+	opts := pagerduty.ListEscalationPoliciesOptions{
 		Query: searchName,
 	}
 
-	resp, _, err := client.EscalationPolicies.List(o)
+	res, err := client.ListEscalationPolicies(opts)
 	if err != nil {
 		return err
 	}
 
 	var found *pagerduty.EscalationPolicy
 
-	for _, policy := range resp.EscalationPolicies {
+	for _, policy := range res.EscalationPolicies {
 		if policy.Name == searchName {
-			found = policy
+			found = &policy
 			break
 		}
 	}

@@ -6,9 +6,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/PagerDuty/go-pagerduty"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/PagerDuty/go-pagerduty"
 )
 
 func resourcePagerDutyTeamMembership() *schema.Resource {
@@ -49,12 +49,14 @@ func resourcePagerDutyTeamMembershipCreate(d *schema.ResourceData, meta interfac
 
 	userID := d.Get("user_id").(string)
 	teamID := d.Get("team_id").(string)
-	role := d.Get("role").(string)
+	// role := d.Get("role").(string)
 
-	log.Printf("[DEBUG] Adding user: %s to team: %s with role: %s", userID, teamID, role)
+	log.Printf("[DEBUG] Adding user: %s to team: %s", userID, teamID)
 
 	retryErr := resource.Retry(2*time.Minute, func() *resource.RetryError {
-		if _, err := client.Teams.AddUserWithRole(teamID, userID, role); err != nil {
+		// XXX(heimweh): This is missing.
+		// if _, err := client.AddUserWithRole(teamID, userID, role); err != nil {
+		if err := client.AddUserToTeam(teamID, userID); err != nil {
 			if isErrCode(err, 500) {
 				return resource.RetryableError(err)
 			}
@@ -80,13 +82,13 @@ func resourcePagerDutyTeamMembershipRead(d *schema.ResourceData, meta interface{
 
 	log.Printf("[DEBUG] Reading user: %s from team: %s", userID, teamID)
 
-	resp, _, err := client.Teams.GetMembers(teamID, &pagerduty.GetMembersOptions{})
+	res, err := client.ListMembers(teamID, pagerduty.ListMembersOptions{})
 	if err != nil {
 		return handleNotFoundError(err, d)
 	}
 
-	for _, member := range resp.Members {
-		if member.User.ID == userID {
+	for _, member := range res.Members {
+		if member.APIObject.ID == userID {
 			d.Set("user_id", userID)
 			d.Set("team_id", teamID)
 			d.Set("role", member.Role)
@@ -112,7 +114,9 @@ func resourcePagerDutyTeamMembershipUpdate(d *schema.ResourceData, meta interfac
 
 	// To update existing membership resource, We can use the same API as creating a new membership.
 	retryErr := resource.Retry(2*time.Minute, func() *resource.RetryError {
-		if _, err := client.Teams.AddUserWithRole(teamID, userID, role); err != nil {
+		/// XXX(heimweh): This is missing.
+		// if _, err := client.AddUserWithRole(teamID, userID, role); err != nil {
+		if err := client.AddUserToTeam(teamID, userID); err != nil {
 			if isErrCode(err, 500) {
 				return resource.RetryableError(err)
 			}
@@ -138,7 +142,7 @@ func resourcePagerDutyTeamMembershipDelete(d *schema.ResourceData, meta interfac
 
 	log.Printf("[DEBUG] Removing user: %s from team: %s", userID, teamID)
 
-	if _, err := client.Teams.RemoveUser(teamID, userID); err != nil {
+	if err := client.RemoveUserFromTeam(teamID, userID); err != nil {
 		return err
 	}
 

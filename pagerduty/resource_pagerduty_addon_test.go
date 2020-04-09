@@ -6,10 +6,10 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/PagerDuty/go-pagerduty"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/PagerDuty/go-pagerduty"
 )
 
 func init() {
@@ -30,15 +30,15 @@ func testSweepAddon(region string) error {
 		return err
 	}
 
-	resp, _, err := client.Addons.List(&pagerduty.ListAddonsOptions{})
+	res, err := client.ListAddons(pagerduty.ListAddonOptions{})
 	if err != nil {
 		return err
 	}
 
-	for _, addon := range resp.Addons {
+	for _, addon := range res.Addons {
 		if strings.HasPrefix(addon.Name, "test") || strings.HasPrefix(addon.Name, "tf-") {
 			log.Printf("Destroying add-on %s (%s)", addon.Name, addon.ID)
-			if _, err := client.Addons.Delete(addon.ID); err != nil {
+			if err := client.DeleteAddon(addon.ID); err != nil {
 				return err
 			}
 		}
@@ -87,7 +87,7 @@ func testAccCheckPagerDutyAddonDestroy(s *terraform.State) error {
 			continue
 		}
 
-		if _, _, err := client.Addons.Get(r.Primary.ID); err == nil {
+		if _, err := client.GetAddon(r.Primary.ID); err == nil {
 			return fmt.Errorf("Add-on still exists")
 		}
 
@@ -108,7 +108,7 @@ func testAccCheckPagerDutyAddonExists(n string) resource.TestCheckFunc {
 
 		client := testAccProvider.Meta().(*pagerduty.Client)
 
-		found, _, err := client.Addons.Get(rs.Primary.ID)
+		found, err := client.GetAddon(rs.Primary.ID)
 		if err != nil {
 			return err
 		}

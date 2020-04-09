@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/PagerDuty/go-pagerduty"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/PagerDuty/go-pagerduty"
 )
 
 func TestAccPagerDutyServiceIntegration_Basic(t *testing.T) {
@@ -99,7 +99,7 @@ func testAccCheckPagerDutyServiceIntegrationDestroy(s *terraform.State) error {
 
 		service, _ := s.RootModule().Resources["pagerduty_service.foo"]
 
-		if _, _, err := client.Services.GetIntegration(service.Primary.ID, r.Primary.ID, &pagerduty.GetIntegrationOptions{}); err == nil {
+		if _, err := client.GetIntegration(service.Primary.ID, r.Primary.ID, pagerduty.GetIntegrationOptions{}); err == nil {
 			return fmt.Errorf("Service Integration still exists")
 		}
 
@@ -122,7 +122,7 @@ func testAccCheckPagerDutyServiceIntegrationExists(n string) resource.TestCheckF
 
 		client := testAccProvider.Meta().(*pagerduty.Client)
 
-		found, _, err := client.Services.GetIntegration(service.Primary.ID, rs.Primary.ID, &pagerduty.GetIntegrationOptions{})
+		found, err := client.GetIntegration(service.Primary.ID, rs.Primary.ID, pagerduty.GetIntegrationOptions{})
 		if err != nil {
 			return fmt.Errorf("Service integration not found: %v", rs.Primary.ID)
 		}

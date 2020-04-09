@@ -6,8 +6,8 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/PagerDuty/go-pagerduty"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
 func dataSourcePagerDutyVendor() *schema.Resource {
@@ -39,20 +39,20 @@ func dataSourcePagerDutyVendorRead(d *schema.ResourceData, meta interface{}) err
 
 	searchName := d.Get("name").(string)
 
-	o := &pagerduty.ListVendorsOptions{
+	opts := pagerduty.ListVendorOptions{
 		Query: searchName,
 	}
 
-	resp, _, err := client.Vendors.List(o)
+	res, err := client.ListVendors(opts)
 	if err != nil {
 		return err
 	}
 
 	var found *pagerduty.Vendor
 
-	for _, vendor := range resp.Vendors {
+	for _, vendor := range res.Vendors {
 		if strings.EqualFold(vendor.Name, searchName) {
-			found = vendor
+			found = &vendor
 			break
 		}
 	}
@@ -60,9 +60,9 @@ func dataSourcePagerDutyVendorRead(d *schema.ResourceData, meta interface{}) err
 	// We didn't find an exact match, so let's fallback to partial matching.
 	if found == nil {
 		pr := regexp.MustCompile("(?i)" + searchName)
-		for _, vendor := range resp.Vendors {
+		for _, vendor := range res.Vendors {
 			if pr.MatchString(vendor.Name) {
-				found = vendor
+				found = &vendor
 				break
 			}
 		}

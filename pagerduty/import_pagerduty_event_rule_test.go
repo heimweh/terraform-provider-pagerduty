@@ -1,30 +1,30 @@
 package pagerduty
 
-import (
-	"fmt"
-	"testing"
+// import (
+// 	"fmt"
+// 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-)
+// 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
+// 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+// )
 
-func TestAccPagerDutyEventRule_import(t *testing.T) {
-	eventRule := fmt.Sprintf("tf-%s", acctest.RandString(5))
+// func TestAccPagerDutyEventRule_import(t *testing.T) {
+// 	eventRule := fmt.Sprintf("tf-%s", acctest.RandString(5))
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckPagerDutyEventRuleDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccCheckPagerDutyEventRuleConfig(eventRule),
-			},
+// 	resource.Test(t, resource.TestCase{
+// 		PreCheck:     func() { testAccPreCheck(t) },
+// 		Providers:    testAccProviders,
+// 		CheckDestroy: testAccCheckPagerDutyEventRuleDestroy,
+// 		Steps: []resource.TestStep{
+// 			{
+// 				Config: testAccCheckPagerDutyEventRuleConfig(eventRule),
+// 			},
 
-			{
-				ResourceName:      "pagerduty_event_rule.foo",
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-		},
-	})
-}
+// 			{
+// 				ResourceName:      "pagerduty_event_rule.foo",
+// 				ImportState:       true,
+// 				ImportStateVerify: true,
+// 			},
+// 		},
+// 	})
+// }

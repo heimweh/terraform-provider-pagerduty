@@ -6,10 +6,10 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/PagerDuty/go-pagerduty"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/PagerDuty/go-pagerduty"
 )
 
 func init() {
@@ -35,7 +35,7 @@ func testSweepUser(region string) error {
 		return err
 	}
 
-	resp, _, err := client.Users.List(&pagerduty.ListUsersOptions{})
+	resp, err := client.ListUsers(pagerduty.ListUsersOptions{})
 	if err != nil {
 		return err
 	}
@@ -43,7 +43,7 @@ func testSweepUser(region string) error {
 	for _, user := range resp.Users {
 		if strings.HasPrefix(user.Name, "test") || strings.HasPrefix(user.Name, "tf-") {
 			log.Printf("Destroying user %s (%s)", user.Name, user.ID)
-			if _, err := client.Users.Delete(user.ID); err != nil {
+			if err := client.DeleteUser(user.ID); err != nil {
 				return err
 			}
 		}
@@ -157,7 +157,7 @@ func testAccCheckPagerDutyUserDestroy(s *terraform.State) error {
 			continue
 		}
 
-		if _, _, err := client.Users.Get(r.Primary.ID, &pagerduty.GetUserOptions{}); err == nil {
+		if _, err := client.GetUser(r.Primary.ID, pagerduty.GetUserOptions{}); err == nil {
 			return fmt.Errorf("User still exists")
 		}
 
@@ -177,7 +177,7 @@ func testAccCheckPagerDutyUserExists(n string) resource.TestCheckFunc {
 
 		client := testAccProvider.Meta().(*pagerduty.Client)
 
-		found, _, err := client.Users.Get(rs.Primary.ID, &pagerduty.GetUserOptions{})
+		found, err := client.GetUser(rs.Primary.ID, pagerduty.GetUserOptions{})
 		if err != nil {
 			return err
 		}

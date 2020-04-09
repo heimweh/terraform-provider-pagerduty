@@ -6,10 +6,10 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/PagerDuty/go-pagerduty"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/PagerDuty/go-pagerduty"
 )
 
 func init() {
@@ -30,7 +30,7 @@ func testSweepService(region string) error {
 		return err
 	}
 
-	resp, _, err := client.Services.List(&pagerduty.ListServicesOptions{})
+	resp, err := client.ListServices(pagerduty.ListServiceOptions{})
 	if err != nil {
 		return err
 	}
@@ -38,7 +38,7 @@ func testSweepService(region string) error {
 	for _, service := range resp.Services {
 		if strings.HasPrefix(service.Name, "test") || strings.HasPrefix(service.Name, "tf-") {
 			log.Printf("Destroying service %s (%s)", service.Name, service.ID)
-			if _, err := client.Services.Delete(service.ID); err != nil {
+			if err := client.DeleteService(service.ID); err != nil {
 				return err
 			}
 		}
@@ -548,7 +548,7 @@ func testAccCheckPagerDutyServiceSaveServiceId(p *string, n string) resource.Tes
 
 		client := testAccProvider.Meta().(*pagerduty.Client)
 
-		found, _, err := client.Services.Get(rs.Primary.ID, &pagerduty.GetServiceOptions{})
+		found, err := client.GetService(rs.Primary.ID, &pagerduty.GetServiceOptions{})
 		if err != nil {
 			return err
 		}
@@ -570,7 +570,7 @@ func testAccCheckPagerDutyServiceDestroy(s *terraform.State) error {
 			continue
 		}
 
-		if _, _, err := client.Services.Get(r.Primary.ID, &pagerduty.GetServiceOptions{}); err == nil {
+		if _, err := client.GetService(r.Primary.ID, &pagerduty.GetServiceOptions{}); err == nil {
 			return fmt.Errorf("Service still exists")
 		}
 
@@ -591,7 +591,7 @@ func testAccCheckPagerDutyServiceExists(n string) resource.TestCheckFunc {
 
 		client := testAccProvider.Meta().(*pagerduty.Client)
 
-		found, _, err := client.Services.Get(rs.Primary.ID, &pagerduty.GetServiceOptions{})
+		found, err := client.GetService(rs.Primary.ID, &pagerduty.GetServiceOptions{})
 		if err != nil {
 			return err
 		}

@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/PagerDuty/go-pagerduty"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
 func dataSourcePagerDutySchedule() *schema.Resource {
@@ -28,20 +28,20 @@ func dataSourcePagerDutyScheduleRead(d *schema.ResourceData, meta interface{}) e
 
 	searchName := d.Get("name").(string)
 
-	o := &pagerduty.ListSchedulesOptions{
+	opts := pagerduty.ListSchedulesOptions{
 		Query: searchName,
 	}
 
-	resp, _, err := client.Schedules.List(o)
+	res, err := client.ListSchedules(opts)
 	if err != nil {
 		return err
 	}
 
 	var found *pagerduty.Schedule
 
-	for _, schedule := range resp.Schedules {
+	for _, schedule := range res.Schedules {
 		if schedule.Name == searchName {
-			found = schedule
+			found = &schedule
 			break
 		}
 	}

@@ -5,8 +5,8 @@ import (
 	"log"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/PagerDuty/go-pagerduty"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
 func dataSourcePagerDutyExtensionSchema() *schema.Resource {
@@ -33,16 +33,20 @@ func dataSourcePagerDutyExtensionSchemaRead(d *schema.ResourceData, meta interfa
 
 	searchName := d.Get("name").(string)
 
-	resp, _, err := client.ExtensionSchemas.List(&pagerduty.ListExtensionSchemasOptions{Query: searchName})
+	opts := pagerduty.ListExtensionSchemaOptions{
+		Query: searchName,
+	}
+
+	res, err := client.ListExtensionSchemas(opts)
 	if err != nil {
 		return err
 	}
 
 	var found *pagerduty.ExtensionSchema
 
-	for _, schema := range resp.ExtensionSchemas {
+	for _, schema := range res.ExtensionSchemas {
 		if strings.EqualFold(schema.Label, searchName) {
-			found = schema
+			found = &schema
 			break
 		}
 	}

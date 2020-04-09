@@ -6,9 +6,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/PagerDuty/go-pagerduty"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/PagerDuty/go-pagerduty"
 )
 
 func resourcePagerDutyServiceIntegration() *schema.Resource {
@@ -73,13 +73,16 @@ func resourcePagerDutyServiceIntegration() *schema.Resource {
 	}
 }
 
-func buildServiceIntegrationStruct(d *schema.ResourceData) *pagerduty.Integration {
-	serviceIntegration := &pagerduty.Integration{
+func buildServiceIntegrationStruct(d *schema.ResourceData) pagerduty.Integration {
+	serviceIntegration := pagerduty.Integration{
 		Name: d.Get("name").(string),
 		Type: "service_integration",
-		Service: &pagerduty.ServiceReference{
-			Type: "service",
+		APIObject: pagerduty.APIObject{
+			ID: d.Id(),
+		},
+		Service: &pagerduty.APIObject{
 			ID:   d.Get("service").(string),
+			Type: "service",
 		},
 	}
 
@@ -96,7 +99,7 @@ func buildServiceIntegrationStruct(d *schema.ResourceData) *pagerduty.Integratio
 	}
 
 	if attr, ok := d.GetOk("vendor"); ok {
-		serviceIntegration.Vendor = &pagerduty.VendorReference{
+		serviceIntegration.Vendor = &pagerduty.APIObject{
 			ID:   attr.(string),
 			Type: "vendor",
 		}
@@ -108,13 +111,13 @@ func buildServiceIntegrationStruct(d *schema.ResourceData) *pagerduty.Integratio
 func resourcePagerDutyServiceIntegrationCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*pagerduty.Client)
 
-	serviceIntegration := buildServiceIntegrationStruct(d)
+	req := buildServiceIntegrationStruct(d)
 
-	log.Printf("[INFO] Creating PagerDuty service integration %s", serviceIntegration.Name)
+	log.Printf("[INFO] Creating PagerDuty service integration %s", req.Name)
 
 	service := d.Get("service").(string)
 
-	serviceIntegration, _, err := client.Services.CreateIntegration(service, serviceIntegration)
+	serviceIntegration, err := client.CreateIntegration(service, req)
 	if err != nil {
 		return err
 	}
@@ -131,10 +134,10 @@ func resourcePagerDutyServiceIntegrationRead(d *schema.ResourceData, meta interf
 
 	service := d.Get("service").(string)
 
-	o := &pagerduty.GetIntegrationOptions{}
+	opts := pagerduty.GetIntegrationOptions{}
 
 	return resource.Retry(2*time.Minute, func() *resource.RetryError {
-		serviceIntegration, _, err := client.Services.GetIntegration(service, d.Id(), o)
+		serviceIntegration, err := client.GetIntegration(service, d.Id(), opts)
 		if err != nil {
 			log.Printf("[WARN] Service integration read error")
 			errResp := handleNotFoundError(err, d)
@@ -174,13 +177,13 @@ func resourcePagerDutyServiceIntegrationRead(d *schema.ResourceData, meta interf
 func resourcePagerDutyServiceIntegrationUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*pagerduty.Client)
 
-	serviceIntegration := buildServiceIntegrationStruct(d)
+	req := buildServiceIntegrationStruct(d)
 
 	service := d.Get("service").(string)
 
 	log.Printf("[INFO] Updating PagerDuty service integration %s", d.Id())
 
-	if _, _, err := client.Services.UpdateIntegration(service, d.Id(), serviceIntegration); err != nil {
+	if _, err := client.UpdateIntegration(service, req); err != nil {
 		return err
 	}
 
@@ -194,7 +197,7 @@ func resourcePagerDutyServiceIntegrationDelete(d *schema.ResourceData, meta inte
 
 	log.Printf("[INFO] Removing PagerDuty service integration %s", d.Id())
 
-	if _, err := client.Services.DeleteIntegration(service, d.Id()); err != nil {
+	if err := client.DeleteIntegration(service, d.Id()); err != nil {
 		return err
 	}
 
@@ -213,7 +216,7 @@ func resourcePagerDutyServiceIntegrationImport(d *schema.ResourceData, meta inte
 	}
 	sid, id := ids[0], ids[1]
 
-	_, _, err := client.Services.GetIntegration(sid, id, nil)
+	_, err := client.GetIntegration(sid, id, pagerduty.GetIntegrationOptions{})
 	if err != nil {
 		return []*schema.ResourceData{}, err
 	}

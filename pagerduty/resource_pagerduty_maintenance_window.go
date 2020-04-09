@@ -3,8 +3,8 @@ package pagerduty
 import (
 	"log"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/PagerDuty/go-pagerduty"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
 func resourcePagerDutyMaintenanceWindow() *schema.Resource {
@@ -46,11 +46,14 @@ func resourcePagerDutyMaintenanceWindow() *schema.Resource {
 	}
 }
 
-func buildMaintenanceWindowStruct(d *schema.ResourceData) *pagerduty.MaintenanceWindow {
-	window := &pagerduty.MaintenanceWindow{
+func buildMaintenanceWindowStruct(d *schema.ResourceData) pagerduty.MaintenanceWindow {
+	window := pagerduty.MaintenanceWindow{
 		StartTime: d.Get("start_time").(string),
 		EndTime:   d.Get("end_time").(string),
-		Services:  expandServices(d.Get("services").(*schema.Set)),
+		Services:  expandAPIObjectSet("service_reference", d.Get("services").(*schema.Set)),
+		APIObject: pagerduty.APIObject{
+			ID: d.Id(),
+		},
 	}
 
 	if v, ok := d.GetOk("description"); ok {
@@ -63,11 +66,12 @@ func buildMaintenanceWindowStruct(d *schema.ResourceData) *pagerduty.Maintenance
 func resourcePagerDutyMaintenanceWindowCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*pagerduty.Client)
 
-	window := buildMaintenanceWindowStruct(d)
+	req := buildMaintenanceWindowStruct(d)
 
 	log.Printf("[INFO] Creating PagerDuty maintenance window")
 
-	window, _, err := client.MaintenanceWindows.Create(window)
+	// XXX(heimweh): What do we put in From?
+	window, err := client.CreateMaintenanceWindow("", req)
 	if err != nil {
 		return err
 	}
@@ -82,7 +86,9 @@ func resourcePagerDutyMaintenanceWindowRead(d *schema.ResourceData, meta interfa
 
 	log.Printf("[INFO] Reading PagerDuty maintenance window %s", d.Id())
 
-	window, _, err := client.MaintenanceWindows.Get(d.Id())
+	opts := pagerduty.GetMaintenanceWindowOptions{}
+
+	window, err := client.GetMaintenanceWindow(d.Id(), opts)
 	if err != nil {
 		return handleNotFoundError(err, d)
 	}
@@ -91,7 +97,7 @@ func resourcePagerDutyMaintenanceWindowRead(d *schema.ResourceData, meta interfa
 	d.Set("start_time", window.StartTime)
 	d.Set("end_time", window.EndTime)
 
-	if err := d.Set("services", flattenServices(window.Services)); err != nil {
+	if err := d.Set("services", flattenAPIObject(window.Services...)); err != nil {
 		return err
 	}
 
@@ -101,11 +107,11 @@ func resourcePagerDutyMaintenanceWindowRead(d *schema.ResourceData, meta interfa
 func resourcePagerDutyMaintenanceWindowUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*pagerduty.Client)
 
-	window := buildMaintenanceWindowStruct(d)
+	req := buildMaintenanceWindowStruct(d)
 
 	log.Printf("[INFO] Updating PagerDuty maintenance window %s", d.Id())
 
-	if _, _, err := client.MaintenanceWindows.Update(d.Id(), window); err != nil {
+	if _, err := client.UpdateMaintenanceWindow(req); err != nil {
 		return err
 	}
 
@@ -117,35 +123,11 @@ func resourcePagerDutyMaintenanceWindowDelete(d *schema.ResourceData, meta inter
 
 	log.Printf("[INFO] Deleting PagerDuty maintenance window %s", d.Id())
 
-	if _, err := client.MaintenanceWindows.Delete(d.Id()); err != nil {
+	if err := client.DeleteMaintenanceWindow(d.Id()); err != nil {
 		return err
 	}
 
 	d.SetId("")
 
 	return nil
-}
-
-func expandServices(v *schema.Set) []*pagerduty.ServiceReference {
-	var services []*pagerduty.ServiceReference
-
-	for _, srv := range v.List() {
-		service := &pagerduty.ServiceReference{
-			Type: "service_reference",
-			ID:   srv.(string),
-		}
-		services = append(services, service)
-	}
-
-	return services
-}
-
-func flattenServices(v []*pagerduty.ServiceReference) *schema.Set {
-	var services []interface{}
-
-	for _, srv := range v {
-		services = append(services, srv.ID)
-	}
-
-	return schema.NewSet(schema.HashString, services)
 }

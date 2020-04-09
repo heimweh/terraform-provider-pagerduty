@@ -4,9 +4,9 @@ import (
 	"log"
 	"time"
 
+	"github.com/PagerDuty/go-pagerduty"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/PagerDuty/go-pagerduty"
 )
 
 func resourcePagerDutyTeam() *schema.Resource {
@@ -51,11 +51,11 @@ func buildTeamStruct(d *schema.ResourceData) *pagerduty.Team {
 func resourcePagerDutyTeamCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*pagerduty.Client)
 
-	team := buildTeamStruct(d)
+	req := buildTeamStruct(d)
 
-	log.Printf("[INFO] Creating PagerDuty team %s", team.Name)
+	log.Printf("[INFO] Creating PagerDuty team %s", req.Name)
 
-	team, _, err := client.Teams.Create(team)
+	team, err := client.CreateTeam(req)
 	if err != nil {
 		return err
 	}
@@ -72,7 +72,7 @@ func resourcePagerDutyTeamRead(d *schema.ResourceData, meta interface{}) error {
 	log.Printf("[INFO] Reading PagerDuty team %s", d.Id())
 
 	retryErr := resource.Retry(30*time.Second, func() *resource.RetryError {
-		if team, _, err := client.Teams.Get(d.Id()); err != nil {
+		if team, err := client.GetTeam(d.Id()); err != nil {
 			if isErrCode(err, 500) || isErrCode(err, 403) {
 				return resource.RetryableError(err)
 			}
@@ -101,7 +101,7 @@ func resourcePagerDutyTeamUpdate(d *schema.ResourceData, meta interface{}) error
 
 	log.Printf("[INFO] Updating PagerDuty team %s", d.Id())
 
-	if _, _, err := client.Teams.Update(d.Id(), team); err != nil {
+	if _, err := client.UpdateTeam(d.Id(), team); err != nil {
 		return err
 	}
 
@@ -113,7 +113,7 @@ func resourcePagerDutyTeamDelete(d *schema.ResourceData, meta interface{}) error
 
 	log.Printf("[INFO] Deleting PagerDuty team %s", d.Id())
 
-	if _, err := client.Teams.Delete(d.Id()); err != nil {
+	if err := client.DeleteTeam(d.Id()); err != nil {
 		return err
 	}
 
